@@ -1,3 +1,4 @@
+import sqlalchemy
 from flask import Flask, request, jsonify, make_response
 from flask_restful import Resource, Api
 from marshmallow import ValidationError
@@ -57,9 +58,11 @@ def is_real():
     except ValidationError as err:
         print(err)
         return err.messages, 422
-    db.session.add(data)
-    db.session.commit()
-    print(data.source)
+    try:
+        db.session.add(data)
+        db.session.commit()
+    except sqlalchemy.exc.IntegrityError:
+        pass
     return str(nlp_analyzer.is_real(data.content)), 200
 
 

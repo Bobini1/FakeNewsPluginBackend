@@ -9,8 +9,8 @@ ma = Marshmallow()
 class Source(db.Model):
     __tablename__ = 'source'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    url = db.Column(db.String(120), nullable=False)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    url = db.Column(db.String(120), nullable=False, unique=True)
     reliability = db.Column(db.Float, nullable=False)
 
 
@@ -19,7 +19,7 @@ class Article(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     type_of_article = db.Column(db.String(120), index=True)
-    content = db.Column(db.Text, index=True)
+    content = db.Column(db.Text, index=True, unique=True)
     date = db.Column(db.DateTime, index=True)
     topic = db.Column(db.String(120), index=True)
     country = db.Column(db.String(120), index=True)
