@@ -1,9 +1,22 @@
 from flask import Flask, request, jsonify, make_response
 from flask_restful import Resource, Api
-from models import db, ma, Post, PostSchema
+from marshmallow import ValidationError
+
+from models import db, ma, Article, ArticleSchema, Source, SourceSchema, User, UserSchema, UserPreference, UserPreferenceSchema
+import nlp_analyzer
 import sqlite3
 from sqlite3 import Error
 from datetime import datetime
+
+article_schema = ArticleSchema()
+articles_schema = ArticleSchema(many=True)
+source_schema = SourceSchema()
+sources_schema = SourceSchema(many=True)
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
+user_preferences_schema = UserPreferenceSchema()
+user_preferencess_schema = UserPreferenceSchema(many=True)
+
 
 
 def create_connection(db_file):
@@ -25,7 +38,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 api = Api(app)
 
 
-
 create_connection('test.db')
 db.init_app(app)
 ma.init_app(app)
@@ -33,19 +45,24 @@ ma.init_app(app)
 
 with app.app_context():
     db.create_all()
-    post = Post(title='Hello', content='World', date=datetime.now(), tag='Hello', cover='World')
-    db.session.add(post)
+
+
+@app.route("/is_real", methods=['POST'])
+def is_real():
+    json_data = request.get_json()
+    if not json_data:
+        return {"message": "No input data provided"}, 400
+    try:
+        data = article_schema.load(json_data, session=db.session)
+    except ValidationError as err:
+        print(err)
+        return err.messages, 422
+    db.session.add(data)
     db.session.commit()
+    print(data.source)
+    return str(nlp_analyzer.is_real(data.content)), 200
 
 
-class PostController(Resource):  # put application's code here
-    posts_schema = PostSchema(many=True)
-    post_schema = PostSchema()
 
-    def get(self):
-        return PostController.posts_schema.dump(db.session.query(Post).all())
-
-
-api.add_resource(PostController, '/')
 
 app.run(debug=True)
