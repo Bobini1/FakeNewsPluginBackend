@@ -66,6 +66,11 @@ def is_real():
     return str(nlp_analyzer.is_real(data.content)), 200
 
 
+#  simplified version for presentation
+@app.route("/is_fake", methods=['POST'])
+def is_fake():
+    json_data = request.get_json()
+    return str(not nlp_analyzer.is_real(json_data["content"])), 200
 
 
 
