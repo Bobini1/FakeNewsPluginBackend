@@ -1,17 +1,14 @@
 import re
 import string
-from functools import partial
 
 import nltk
 import numpy as np
 import pandas as pd
 from nltk.corpus import stopwords
 from nltk.corpus import wordnet
-from nltk.stem import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
-from nltk.tokenize import word_tokenize
-from sklearn.model_selection import train_test_split
+import smote_variants as sv
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -160,24 +157,26 @@ def generate_models():
 
 
 
-
-
-    # FITTING THE CLASSIFICATION MODEL using Logistic Regression(tf-idf)
-    lr_tfidf = LogisticRegression(solver='liblinear', C=10, penalty='l2')
-    lr_tfidf.fit(X_train_vectors_tfidf, y_train)
-    # Predict y value for test dataset
-    y_predict = lr_tfidf.predict(X_test_vectors_tfidf)
-    y_prob = lr_tfidf.predict_proba(X_test_vectors_tfidf)[:, 1]
-    print(classification_report(y_test, y_predict))
-    print('Confusion Matrix:', confusion_matrix(y_test, y_predict))
-
-    with open('NLP/lr_tfidf', 'wb') as f:
-        pickle.dump(lr_tfidf, f)
+    #
+    #
+    # # FITTING THE CLASSIFICATION MODEL using Logistic Regression(tf-idf)
+    # lr_tfidf = LogisticRegression(solver='liblinear', C=10, penalty='l2')
+    # X_resampled, y_resampled = sv.LVQ_SMOTE().fit_resample(np.array(X_train_vectors_tfidf), np.array(y_train))
+    # lr_tfidf.fit(X_resampled, y_resampled)
+    # # Predict y value for test dataset
+    # y_predict = lr_tfidf.predict(X_test_vectors_tfidf)
+    # y_prob = lr_tfidf.predict_proba(X_test_vectors_tfidf)[:, 1]
+    # print(classification_report(y_test, y_predict))
+    # print('Confusion Matrix:', confusion_matrix(y_test, y_predict))
+    #
+    # with open('NLP/lr_tfidf', 'wb') as f:
+    #     pickle.dump(lr_tfidf, f)
 
 
     # FITTING THE CLASSIFICATION MODEL using Logistic Regression (W2v)
     lr_w2v = LogisticRegression(solver='liblinear', C=10, penalty='l2')
-    lr_w2v.fit(X_train_vectors_w2v, y_train)  # model
+    X_resampled, y_resampled = sv.polynom_fit_SMOTE().fit_resample(np.array(X_train_vectors_w2v), np.array(y_train))
+    lr_w2v.fit(X_resampled, y_resampled)  # model
     # Predict y value for test dataset
     y_predict = lr_w2v.predict(X_test_vectors_w2v)
     y_prob = lr_w2v.predict_proba(X_test_vectors_w2v)[:, 1]
@@ -187,33 +186,34 @@ def generate_models():
     with open('NLP/lr_w2v.pkl', 'wb') as f:
         pickle.dump(lr_w2v, f)
 
+    #
+    # # FITTING THE CLASSIFICATION MODEL using Naive Bayes(tf-idf)
+    # nb_tfidf = MultinomialNB()
+    # X_resampled, y_resampled = sv.polynom_fit_SMOTE().fit_resample(np.array(X_train_vectors_tfidf), np.array(y_train))
+    # nb_tfidf.fit(X_resampled, y_resampled)
+    # # Predict y value for test dataset
+    # y_predict = nb_tfidf.predict(X_test_vectors_tfidf)
+    # y_prob = nb_tfidf.predict_proba(X_test_vectors_tfidf)[:, 1]
+    # print(classification_report(y_test, y_predict))
+    # print('Confusion Matrix:', confusion_matrix(y_test, y_predict))
+    #
+    # with open('NLP/nb_tfidf.pkl', 'wb') as f:
+    #     pickle.dump(nb_tfidf, f)
 
-    # FITTING THE CLASSIFICATION MODEL using Naive Bayes(tf-idf)
-    nb_tfidf = MultinomialNB()
-    nb_tfidf.fit(X_train_vectors_tfidf, y_train)
-    # Predict y value for test dataset
-    y_predict = nb_tfidf.predict(X_test_vectors_tfidf)
-    y_prob = nb_tfidf.predict_proba(X_test_vectors_tfidf)[:, 1]
-    print(classification_report(y_test, y_predict))
-    print('Confusion Matrix:', confusion_matrix(y_test, y_predict))
 
-    with open('NLP/nb_tfidf.pkl', 'wb') as f:
-        pickle.dump(nb_tfidf, f)
-
-
-
-    # Pre-processing the new dataset
-    df_test['clean_text'] = df_test['Text'].apply(lambda x: finalpreprocess(x))  # preprocess the data
-    X_test = df_test['clean_text']
-    # converting words to numerical data using tf-idf
-    X_vector = tfidf_vectorizer.transform(X_test)
-    # use the best model to predict 'target' value for the new dataset
-    y_predict = lr_tfidf.predict(X_vector)
-    y_prob = lr_tfidf.predict_proba(X_vector)[:, 1]
-    df_test['predict_prob'] = y_prob
-    df_test['Labels'] = y_predict
-    final = df_test[['clean_text', 'Labels']].reset_index(drop=True)
-    print(final.head())
+    #
+    # # Pre-processing the new dataset
+    # df_test['clean_text'] = df_test['Text'].apply(lambda x: finalpreprocess(x))  # preprocess the data
+    # X_test = df_test['clean_text']
+    # # converting words to numerical data using tf-idf
+    # X_vector = tfidf_vectorizer.transform(X_test)
+    # # use the best model to predict 'target' value for the new dataset
+    # y_predict = lr_tfidf.predict(X_vector)
+    # y_prob = lr_tfidf.predict_proba(X_vector)[:, 1]
+    # df_test['predict_prob'] = y_prob
+    # df_test['Labels'] = y_predict
+    # final = df_test[['clean_text', 'Labels']].reset_index(drop=True)
+    # print(final.head())
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ import nlp_analyzer
 import sqlite3
 from sqlite3 import Error
 from datetime import datetime
+from flask_cors import CORS
 
 article_schema = ArticleSchema()
 articles_schema = ArticleSchema(many=True)
@@ -34,6 +35,7 @@ def create_connection(db_file):
 
 
 app = Flask(__name__)
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 api = Api(app)
