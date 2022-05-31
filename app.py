@@ -9,6 +9,7 @@ import sqlite3
 from sqlite3 import Error
 from datetime import datetime
 from flask_cors import CORS
+from flask import json
 
 article_schema = ArticleSchema()
 articles_schema = ArticleSchema(many=True)
@@ -65,14 +66,14 @@ def is_real():
         db.session.commit()
     except sqlalchemy.exc.IntegrityError:
         pass
-    return str(nlp_analyzer.is_real(data.content)), 200
+    return json.dumps(nlp_analyzer.is_real(data.content)), 200
 
 
 #  simplified version for presentation
 @app.route("/is_fake", methods=['POST'])
 def is_fake():
     json_data = request.get_json()
-    return str(not nlp_analyzer.is_real(json_data["content"])), 200
+    return json.dumps(not nlp_analyzer.is_real(json_data["content"])), 200
 
 
 

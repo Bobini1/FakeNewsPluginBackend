@@ -11,9 +11,15 @@ word2vec_model = pickle.load(open('NLP/word2vec-model.pkl', 'rb'))
 
 
 def is_real(text):
-    text = full_preprocessing(word2vec_model, pd.Series(text))
+    try:
+        text = full_preprocessing(word2vec_model, pd.Series(text))
+    except:
+        print(text)
+        raise
     print(model.predict_proba(text))
-    return bool(model.predict(text)[0])
+    x = bool(model.predict(text)[0])
+    print(x)
+    return x
 
 
 if __name__ == '__main__':
