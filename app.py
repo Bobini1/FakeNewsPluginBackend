@@ -60,7 +60,7 @@ def is_real():
         if article := Article.query.filter_by(url=data["url"]).first():
             return article.score
         else:
-            score = nlp_analyzer.is_real(data.content)
+            score = nlp_analyzer.is_real(data["content"])
             article = Article(url=data["url"], score=score, date=data["date"], source_url=dirname(data["url"]),
                               isReviewRequested=False)
             db.session.add(article)
