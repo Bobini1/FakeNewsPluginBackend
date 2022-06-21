@@ -21,7 +21,6 @@ user_preferences_schema = UserPreferenceSchema()
 user_preferencess_schema = UserPreferenceSchema(many=True)
 
 
-
 def create_connection(db_file):
     """ create a database connection to a SQLite database """
     conn = None
@@ -58,11 +57,11 @@ def is_real():
         return {"message": "No input data provided"}, 400
     try:
         data = article_request_schema.load(json_data)
-        if article := Article.query.filter_by(url=data.url).first():
+        if article := Article.query.filter_by(url=data["url"]).first():
             return article.score
         else:
             score = nlp_analyzer.is_real(data.content)
-            article = Article(url=data.url, score=score, date=data.date, source_url=dirname(data.url),
+            article = Article(url=data["url"], score=score, date=data["date"], source_url=dirname(data["url"]),
                               isReviewRequested=False)
             db.session.add(article)
             db.session.commit()
@@ -78,7 +77,7 @@ def request_review():
         return {"message": "No input data provided"}, 400
     try:
         data = article_request_schema.load(json_data)
-        if article := Article.query.filter_by(url=data.url).first():
+        if article := Article.query.filter_by(url=data["url"]).first():
             article.isReviewRequested = True
             db.session.commit()
             return "Review requested"
@@ -86,8 +85,6 @@ def request_review():
             return abort(404)
     except ValidationError as err:
         return jsonify({"message": err.messages}), 422
-
-
 
 
 app.run(debug=True)
