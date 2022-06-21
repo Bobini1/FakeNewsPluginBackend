@@ -6,25 +6,15 @@ db = SQLAlchemy()
 ma = Marshmallow()
 
 
-class Source(db.Model):
-    __tablename__ = 'source'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False, unique=True)
-    url = db.Column(db.String(120), nullable=False, unique=True)
-    reliability = db.Column(db.Float, nullable=False)
-
-
 class Article(db.Model):
     __tablename__ = 'article'
 
     id = db.Column(db.Integer, primary_key=True)
-    type_of_article = db.Column(db.String(120), index=True)
-    content = db.Column(db.Text, index=True, unique=True)
     date = db.Column(db.DateTime, index=True)
-    topic = db.Column(db.String(120), index=True)
-    country = db.Column(db.String(120), index=True)
-    source_id = db.Column(db.Integer, db.ForeignKey('source.id'))
-    source = db.relationship("Source")
+    url = db.Column(db.Text, index=True, unique=True)
+    source_url = db.Column(db.Text, index=True)
+    score = db.Column(db.Float)
+    isReviewRequested = db.Column(db.Boolean)
 
 
 class User(db.Model):
@@ -42,18 +32,11 @@ class UserPreference(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 
-class SourceSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Source
-        load_instance = True
-
-
 class ArticleSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Article
         dateformat = '%Y-%m-%dT%H:%M:%S'
         load_instance = True
-    source = fields.Nested(SourceSchema)
 
 
 class UserPreferenceSchema(ma.SQLAlchemyAutoSchema):
@@ -67,3 +50,9 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         model = User
         load_instance = True
     user_preferences = fields.Nested(UserPreferenceSchema)
+
+
+class ArticleRequestSchema(ma.Schema):
+    content = fields.String(required=True)
+    url = fields.String(required=True)
+    date = fields.DateTime(required=True)

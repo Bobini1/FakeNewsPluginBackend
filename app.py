@@ -1,20 +1,20 @@
 import sqlalchemy
 from flask import Flask, request, jsonify, make_response
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, abort
 from marshmallow import ValidationError
 
-from models import db, ma, Article, ArticleSchema, Source, SourceSchema, User, UserSchema, UserPreference, UserPreferenceSchema
+from models import db, ma, Article, ArticleSchema, User, UserSchema, UserPreference, UserPreferenceSchema, ArticleRequestSchema
 import nlp_analyzer
 import sqlite3
 from sqlite3 import Error
 from datetime import datetime
 from flask_cors import CORS
 from flask import json
+from os.path import dirname
 
 article_schema = ArticleSchema()
+article_request_schema = ArticleRequestSchema()
 articles_schema = ArticleSchema(many=True)
-source_schema = SourceSchema()
-sources_schema = SourceSchema(many=True)
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 user_preferences_schema = UserPreferenceSchema()
@@ -57,23 +57,35 @@ def is_real():
     if not json_data:
         return {"message": "No input data provided"}, 400
     try:
-        data = article_schema.load(json_data, session=db.session)
+        data = article_request_schema.load(json_data)
+        if article := Article.query.filter_by(url=data.url).first():
+            return article.score
+        else:
+            score = nlp_analyzer.is_real(data.content)
+            article = Article(url=data.url, score=score, date=data.date, source_url=dirname(data.url),
+                              isReviewRequested=False)
+            db.session.add(article)
+            db.session.commit()
+            return score
     except ValidationError as err:
-        print(err)
-        return err.messages, 422
-    try:
-        db.session.add(data)
-        db.session.commit()
-    except sqlalchemy.exc.IntegrityError:
-        pass
-    return json.dumps(nlp_analyzer.is_real(data.content)), 200
+        return jsonify({"message": err.messages}), 422
 
 
-#  simplified version for presentation
-@app.route("/is_fake", methods=['POST'])
-def is_fake():
+@app.route("/request_review", methods=['POST'])
+def request_review():
     json_data = request.get_json()
-    return json.dumps(not nlp_analyzer.is_real(json_data["content"])), 200
+    if not json_data:
+        return {"message": "No input data provided"}, 400
+    try:
+        data = article_request_schema.load(json_data)
+        if article := Article.query.filter_by(url=data.url).first():
+            article.isReviewRequested = True
+            db.session.commit()
+            return "Review requested"
+        else:
+            return abort(404)
+    except ValidationError as err:
+        return jsonify({"message": err.messages}), 422
 
 
 

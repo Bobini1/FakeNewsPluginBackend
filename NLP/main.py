@@ -119,8 +119,7 @@ def generate_models():
     print(len(df_train))
 
     #  limiting the number of classes
-    #  1 is real, 0 is fake
-    df_train['Labels'] = df_train['Labels'].apply(lambda x: 1 if x in [3, 5] else 0)
+    df_train['Labels'] = df_train['Labels'].apply(lambda x: 2 if x in (3, 5) else 1 if x in (2, 0) else 0)
     df_train.head()
 
     #  SPLITTING THE TRAINING DATASET INTO TRAIN AND TEST

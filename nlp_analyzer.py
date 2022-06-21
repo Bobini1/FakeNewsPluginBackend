@@ -17,8 +17,7 @@ def is_real(text):
         print(text)
         raise
     print(model.predict_proba(text))
-    x = bool(model.predict(text)[0])
-    print(x)
+    x = model.predict(text)[0]
     return x
 
 
