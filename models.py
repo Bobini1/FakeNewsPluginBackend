@@ -13,7 +13,7 @@ class Article(db.Model):
     date = db.Column(db.DateTime, index=True)
     url = db.Column(db.Text, index=True, unique=True)
     source_url = db.Column(db.Text, index=True)
-    score = db.Column(db.Float)
+    score = db.Column(db.Integer)
     isReviewRequested = db.Column(db.Boolean)
 
 
