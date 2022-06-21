@@ -58,14 +58,14 @@ def is_real():
     try:
         data = article_request_schema.load(json_data)
         if article := Article.query.filter_by(url=data["url"]).first():
-            return jsonify(article.score), 200
+            return jsonify(int.from_bytes(article.score, "little", signed=True)), 200
         else:
             score = nlp_analyzer.is_real(data["content"])
             article = Article(url=data["url"], score=score, date=data["date"], source_url=dirname(data["url"]),
                               isReviewRequested=False)
             db.session.add(article)
             db.session.commit()
-            return jsonify(score), 200
+            return jsonify(int(score)), 200
     except ValidationError as err:
         return jsonify({"message": err.messages}), 422
 
